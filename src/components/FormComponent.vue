@@ -46,10 +46,7 @@
         </div>
         <div class="mb-3">
           <label for="city" class="form-label">Город проживания</label>
-          <FormInput
-            id="city"
-            typeInput="text"
-            class="form-control"
+          <FormInputCity
             placeholder="Липецк"
             v-model="city"
           />
@@ -128,6 +125,17 @@
           <label for="formFile" class="form-label">Фото</label>
           <FormInput class="form-control" typeInput="text" id="formFile" v-model="url"/>
         </div>
+        <div class="mb-3">
+          <label for="statusResume" class="form-label">Статус резюме</label>
+          <div id="v-model-select">
+            <select v-model="statusResume">
+              <option selected>Новый</option>
+              <option>Назначено собеседование</option>
+              <option>Принят</option>
+              <option>Отказ</option>
+            </select>
+          </div>
+        </div>
       </form>
     </div>
     <div class="col">
@@ -150,8 +158,9 @@
 
 <script>
 import FormInput from "./FormInput.vue";
-import FormInputEducation from './FormInputEducation.vue';
-import FormInputPhone from './FormInputPhone.vue'
+import FormInputEducation from "./FormInputEducation.vue";
+import FormInputPhone from "./FormInputPhone.vue";
+import FormInputCity from "./FormInputCity.vue";
 
 export default {
   name: "FormComponent",
@@ -170,17 +179,19 @@ export default {
       city: "",
       about: "",
       url: "",
+      statusResume: "",
     };
   },
   components: {
     FormInput,
     FormInputEducation,
-    FormInputPhone
+    FormInputPhone,
+    FormInputCity,
   },
   watch: {
-    url: function (value){
-      document.getElementById("formFoto").src=value
-    }
+    url: function (value) {
+      document.getElementById("formFoto").src = value;
+    },
   },
   methods: {
     fullName() {
