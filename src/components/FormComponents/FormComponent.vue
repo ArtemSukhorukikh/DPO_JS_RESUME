@@ -54,6 +54,7 @@
         <div class="mb-3">
           <label for="education" class="form-label">Образование</label>
           <FormInputEducation
+            :citySearch = "city"
             id="education"
             class="form-control"
             v-model="education"
@@ -128,7 +129,7 @@
         <div class="mb-3">
           <label for="statusResume" class="form-label">Статус резюме</label>
           <div id="v-model-select">
-            <select v-model="statusResume">
+            <select class="form-select" v-model="statusResume">
               <option selected>Новый</option>
               <option>Назначено собеседование</option>
               <option>Принят</option>
@@ -179,7 +180,7 @@ export default {
       city: "",
       about: "",
       url: "",
-      statusResume: "",
+      statusResume: "Новый",
     };
   },
   components: {

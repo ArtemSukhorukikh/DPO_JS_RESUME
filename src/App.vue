@@ -1,15 +1,20 @@
 <template>
+  <p>
+    <router-link to="/">Главная</router-link> |
+    <router-link to="/new">Новое резюме</router-link>
+  </p>
+  <router-view></router-view>
   <div class="container-xl ">
-    <FormComponent/>
+    <!-- <FormComponent/> -->
   </div>
 </template>
   
 <script>
-import FormComponent from "./components/FormComponent";
+//import FormComponent from "./components/FormComponent";
 
 export default {
   name: "App",
-  components: {FormComponent},
+  components: {},
 };
 </script>
 
