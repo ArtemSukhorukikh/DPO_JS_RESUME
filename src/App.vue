@@ -1,7 +1,7 @@
 <template>
   <p>
-    <router-link to="/">Главная</router-link> |
-    <router-link to="/new">Новое резюме</router-link>
+    <router-link class="btn btn-primary" to="/">Главная</router-link> |
+    <router-link class="btn btn-primary" to="/new">Новое резюме</router-link>
   </p>
   <router-view></router-view>
   <div class="container-xl ">

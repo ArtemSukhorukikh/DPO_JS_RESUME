@@ -7,7 +7,8 @@ import HomePage from "./components/HomePageComponent"
 import { createRouter, createWebHashHistory } from 'vue-router';
 const routes = [
     {path: '/new', component: FormComponent},
-    {path: '/', component: HomePage}
+    {path: '/', component: HomePage},
+    {path: '/edit/:id', component: FormComponent}
   ]
 const router = createRouter({
     history: createWebHashHistory(),

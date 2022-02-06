@@ -1,6 +1,6 @@
 <template>
   <div>
-    <select class="form-select" v-model="selectedEducation">
+    <select class="form-select" v-model="educationFull.selectedEducation">
       <option disabled value="">Выберите один из вариантов</option>
       <option v-for="item in items" v-bind:key="item">
         {{ item.value }}
@@ -15,7 +15,7 @@
         typeInput="text"
         class="form-control"
         placeholder="Липецкий государственный технический университет"
-        v-model="university"
+        v-model="educationFull.university"
       />
       <p v-show="showHint">Возможно вы имели ввиду...</p>
       <div class="list-group" v-show="showHint">
@@ -37,7 +37,7 @@
         typeInput="text"
         class="form-control"
         placeholder="ФАИ"
-        v-model="faculty"
+        v-model="educationFull.faculty"
       />
     </div>
     <div class="mb-3">
@@ -47,7 +47,7 @@
         typeInput="text"
         class="form-control"
         placeholder="АС"
-        v-model="specialization"
+        v-model="educationFull.specialization"
       />
     </div>
     <div class="mb-3">
@@ -57,24 +57,43 @@
         typeInput="text"
         class="form-control"
         placeholder="2021"
-        v-model="yearOfGraduation"
+        v-model="educationFull.yearOfGraduation"
       />
     </div>
-    <button @click="addNewEducation">Добавить еще одно образование</button>
-    <div v-if="additionalEducationCount > 0">
+    <button class="btn btn-primary mb-2" @click="addNewEducation">
+      Добавить еще одно образование
+    </button>
+    <div v-if="educationFull.additionalEducationCount > 0">
       <div
-        v-for="additionalEducationItem in additionalEducations"
+        v-for="additionalEducationItem in educationFull.additionalEducations"
         v-bind:key="additionalEducationItem"
       >
         <div>
-          <select class="form-select" v-model="additionalEducationItem.selectedAdditionalEducation">
+          <select
+            class="form-select"
+            v-model="additionalEducationItem.selectedAdditionalEducation"
+          >
             <option disabled value="">Выберите один из вариантов</option>
             <option v-for="item in items" v-bind:key="item">
               {{ item.value }}
             </option>
           </select>
         </div>
-        <div v-if="fullEducation">
+        <div
+          v-if="
+            additionalEducationItem.selectedAdditionalEducation != 'Среднее'
+          "
+        >
+          <div class="mb-3">
+            <label for="yearOfGraduation" class="form-label">Город</label>
+            <FormInput
+              id="city"
+              typeInput="text"
+              class="form-control"
+              placeholder="Липецк"
+              v-model="additionalEducationItem.city"
+            />
+          </div>
           <div class="mb-3">
             <label for="university" class="form-label">Университет</label>
             <FormInput
@@ -84,10 +103,14 @@
               placeholder="Липецкий государственный технический университет"
               v-model="additionalEducationItem.additionalUniversity"
             />
-            <p v-show="showHint">Возможно вы имели ввиду...</p>
+            <!-- <p v-show="showHint">Возможно вы имели ввиду...</p>
             <div class="list-group" v-show="showHint">
               <button
-                @click="insertSearch"
+                @click="
+                  insertSearchadditionalEducation(
+                    additionalEducationItem.number - 1, $event
+                  )
+                "
                 type="button"
                 class="list-group-item list-group-item-action"
                 v-for="hint in hints"
@@ -95,7 +118,7 @@
               >
                 {{ hint }}
               </button>
-            </div>
+            </div> -->
           </div>
           <div class="mb-3">
             <label for="faculty" class="form-label">Факультет</label>
@@ -129,6 +152,13 @@
               v-model="additionalEducationItem.additionalYearOfGraduation"
             />
           </div>
+          <button
+            @click="deleteEducation(additionalEducationItem.number - 1)"
+            type="button"
+            class="btn btn-danger"
+          >
+            Удалить
+          </button>
         </div>
       </div>
     </div>
@@ -142,17 +172,21 @@ import jsonp from "jsonp";
 export default {
   data() {
     return {
-      additionalEducationCount: 0,
-      additionalEducations: [],
+      educationFull: {
+        selectedEducation: " ",
+        university: " ",
+        faculty: " ",
+        specialization: " ",
+        yearOfGraduation: " ",
+        additionalEducationCount: 0,
+        additionalEducations: [],
+      },
       needCity: " ",
       showHint: false,
       hints: [],
-      selectedEducation: " ",
+
       fullEducation: false,
-      university: " ",
-      faculty: " ",
-      specialization: " ",
-      yearOfGraduation: " ",
+
       items: [
         { value: "Среднее" },
         { value: "Среднее специальное" },
@@ -165,78 +199,107 @@ export default {
     FormInput,
   },
   name: "FormInputEducation",
-  props: ["modelValue", "citySearch"],
-  watch: {
-    selectedEducation: function (value) {
-      if (value != "Среднее") {
+  props: ["modelValue", "citySearch", "educationFromDB"],
+  created() {
+    console.log(this.educationFromDB)
+    if (this.educationFromDB != {}) {
+      this.educationFull = this.educationFromDB;
+      if (this.educationFull.selectedEducation != "Среднее") {
         this.fullEducation = true;
       } else {
         this.fullEducation = false;
       }
-      this.$emit("update:modelValue", value);
-    },
-    university: function (value) {
-      jsonp(
-        `http://api.vk.com/method/database.getCities?country_id=1&q=${this.citySearch}&count=1&v=5.131&access_token=${process.env.VUE_APP_ACCESS_TOKEN}`,
-        null,
-        (err, data) => {
-          if (err) {
-            console.log(err);
-          } else {
-            console.log(this.citySearch);
-            this.needCity = data.response.items[0].id;
-            console.log(this.needCity);
-            jsonp(
-              `http://api.vk.com/method/database.getUniversities?city_id=${this.needCity}&country_id=1&q=${this.university}&count=3&v=5.131&access_token=${process.env.VUE_APP_ACCESS_TOKEN}`,
-              null,
-              (err, data) => {
-                if (err) {
-                  console.log(err);
-                } else {
-                  console.log(data);
-                  this.showHint = true;
-                  this.hints = [];
-                  data.response.items.forEach((element) => {
-                    //console.log(element.title)
-                    this.hints.push(element.title);
-                  });
-                }
-              }
-            );
-          }
+    }
+  },
+  watch: {
+    educationFull: {
+      handler(val, oldVal) {
+        console.log(val.university);
+        console.log(oldVal.university);
+        if (val.selectedEducation != "Среднее") {
+          this.fullEducation = true;
+        } else {
+          this.fullEducation = false;
         }
-      );
-      this.$emit("update:modelValue", this.selectedEducation + ": " + value);
-    },
-    specialization: function (value) {
-      this.$emit(
-        "update:modelValue",
-        this.selectedEducation + ": " + this.university + " " + value
-      );
-    },
-    faculty: function (value) {
-      this.$emit(
-        "update:modelValue",
-        this.selectedEducation + ": " + this.university + " " + value
-      );
-    },
-    yearOfGraduation: function (value) {
-      this.$emit(
-        "update:modelValue",
-        this.selectedEducation +
-          ": " +
-          this.university +
-          " " +
-          this.faculty +
-          " " +
-          value
-      );
+        if (this.educationFromDB == {}) {
+          jsonp(
+            `http://api.vk.com/method/database.getCities?country_id=1&q=${this.citySearch}&count=1&v=5.131&access_token=${process.env.VUE_APP_ACCESS_TOKEN}`,
+            null,
+            (err, data) => {
+              if (err) {
+                console.log(err);
+              } else {
+                //console.log(this.citySearch);
+                this.needCity = data.response.items[0].id;
+                //console.log(this.needCity);
+                jsonp(
+                  `http://api.vk.com/method/database.getUniversities?city_id=${this.needCity}&country_id=1&q=${this.educationFull.university}&count=3&v=5.131&access_token=${process.env.VUE_APP_ACCESS_TOKEN}`,
+                  null,
+                  (err, data) => {
+                    if (err) {
+                      console.log(err);
+                    } else {
+                      console.log(data);
+                      this.showHint = true;
+                      this.hints = [];
+                      data.response.items.forEach((element) => {
+                        //console.log(element.title)
+                        this.hints.push(element.title);
+                      });
+                    }
+                  }
+                );
+              }
+            }
+          );
+        }
+
+        this.educationFull.university = val.university;
+        this.educationFull.faculty = val.faculty;
+        this.educationFull.specialization = val.specialization;
+        this.educationFull.yearOfGraduation = val.yearOfGraduation;
+        this.$emit("update:modelValue", this.educationFull);
+        //this.$emit("update:modelValue", value);
+        // if (this.educationFull.additionalEducationCount > 0) {
+        //   jsonp(
+        //   `http://api.vk.com/method/database.getCities?country_id=1&q=${this.educationFull.additionalEducations[this.educationFull.additionalEducationCount - 1].city}&count=1&v=5.131&access_token=${process.env.VUE_APP_ACCESS_TOKEN}`,
+        //   null,
+        //   (err, data) => {
+        //     if (err) {
+        //       console.log(err);
+        //     } else {
+        //       //console.log(this.citySearch);
+        //       this.needCity = data.response.items[0].id;
+        //       //console.log(this.needCity);
+        //       jsonp(
+        //         `http://api.vk.com/method/database.getUniversities?city_id=${data.response.items[0].id}&country_id=1&q=${this.educationFull.additionalEducations[this.educationFull.additionalEducationCount - 1].university}&count=3&v=5.131&access_token=${process.env.VUE_APP_ACCESS_TOKEN}`,
+        //         null,
+        //         (err, data) => {
+        //           if (err) {
+        //             console.log(err);
+        //           } else {
+        //             console.log(data);
+        //             this.showHint = true;
+        //             this.hints = [];
+        //             data.response.items.forEach((element) => {
+        //               //console.log(element.title)
+        //               this.hints.push(element.title);
+        //             });
+        //           }
+        //         }
+        //       );
+        //     }
+        //   }
+        // );
+        // }
+      },
+      deep: true,
     },
   },
   computed: {
     inputValue: {
       get() {
-        return this.selectedEducation;
+        return this.educationFull;
       },
       set(value) {
         this.$emit("update:modelValue", value);
@@ -244,24 +307,28 @@ export default {
     },
   },
   methods: {
+    deleteEducation(index) {
+      this.educationFull.additionalEducationCount--;
+      this.educationFull.additionalEducations.splice(index, 1);
+    },
     addNewEducation() {
-      this.additionalEducationCount += 1;
-      this.additionalEducation.push([
-        {
-          selectedAdditionalEducation: "",
-          additionalUniversity: "",
-          additionalFaculty: " ",
-          additionalSpecialization: " ",
-          additionalYearOfGraduation: " ",
-        },
-      ]);
+      this.educationFull.additionalEducationCount += 1;
+      this.educationFull.additionalEducations.push({
+        number: this.educationFull.additionalEducationCount,
+        city: " ",
+        selectedAdditionalEducation: " ",
+        additionalUniversity: " ",
+        additionalFaculty: " ",
+        additionalSpecialization: " ",
+        additionalYearOfGraduation: " ",
+      });
     },
     insertSearch(event) {
-      this.university = event.target.innerHTML;
-      this.$emit(
-        "update:modelValue",
-        this.selectedEducation + ": " + event.target.innerHTML
-      );
+      this.educationFull.university = event.target.innerHTML;
+    },
+    insertSearchadditionalEducation(index, event) {
+      this.educationFull.additionalEducations[index].university =
+        event.target.innerHTML;
     },
   },
 };

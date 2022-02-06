@@ -8,7 +8,7 @@ export default {
     props:['modelValue'],
     watch:{
         inputValue: function (value){
-            if (value.length < 6 || value.length >= 12) {
+            if (value.length == 11) {
                 document.getElementById('phone').classList.remove("is-valid")
             }
             else
