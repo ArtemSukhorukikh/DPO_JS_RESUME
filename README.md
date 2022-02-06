@@ -1,5 +1,5 @@
 # resume
-
+Vue. Single Page Application. Приложение “База данных резюме” с помощью ранее созданной формы.
 ## Project setup
 ```
 yarn install
@@ -19,6 +19,3 @@ yarn build
 ```
 yarn lint
 ```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
